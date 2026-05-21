@@ -1,0 +1,22 @@
+# Python Virtual Environments & Caches
+backend/.venv/
+backend/__pycache__/
+backend/*.pyc
+
+# Local SQLite Database (auto-generated on launch)
+backend/healthcare.db
+
+# Frontend Node Packages & Output
+frontend/node_modules/
+frontend/dist/
+
+# Environment Configurations
+.env
+backend/.env
+frontend/.env.local
+
+# OS & Editor configurations
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
