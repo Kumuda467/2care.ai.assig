@@ -65,6 +65,9 @@ interface IncomingCallModal {
   doctorName: string;
 }
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
+
 export default function App() {
   // App State
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -162,15 +165,15 @@ export default function App() {
   // Fetch DB records
   const fetchDbData = async () => {
     try {
-      const docsRes = await fetch('http://localhost:8000/api/doctors');
+      const docsRes = await fetch(`${API_URL}/api/doctors`);
       const docs = await docsRes.json();
       setDoctors(docs);
 
-      const apptsRes = await fetch('http://localhost:8000/api/appointments');
+      const apptsRes = await fetch(`${API_URL}/api/appointments`);
       const appts = await apptsRes.json();
       setAppointments(appts);
 
-      const patsRes = await fetch('http://localhost:8000/api/patients');
+      const patsRes = await fetch(`${API_URL}/api/patients`);
       const pats = await patsRes.json();
       setPatients(pats);
     } catch (e) {
@@ -182,7 +185,7 @@ export default function App() {
     fetchDbData();
 
     // Listen to real-time broadcasts on standard websocket channel
-    const socket = new WebSocket('ws://localhost:8000/ws/chat');
+    const socket = new WebSocket(`${WS_URL}/ws/chat`);
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       
@@ -301,7 +304,7 @@ export default function App() {
   // Outbound Trigger Click Handler
   const handleTriggerCampaign = async (phone: string, campaignName: string, doctorId: number) => {
     try {
-      const res = await fetch('http://localhost:8000/api/campaigns/trigger', {
+      const res = await fetch(`${API_URL}/api/campaigns/trigger`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
