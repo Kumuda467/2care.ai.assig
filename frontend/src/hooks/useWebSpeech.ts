@@ -179,14 +179,18 @@ export const useWebSpeech = ({
       isSpeakingRef.current = false;
       onAgentStateChange('idle');
       
-      // Re-enable speech recognition if recording is still active
-      if (isRecording && recognitionRef.current) {
-        try {
-          sttStartTimeRef.current = performance.now();
-          recognitionRef.current.start();
-          onAgentStateChange('listening');
-        } catch (e) {}
-      }
+      // Re-enable speech recognition if recording is still active after a short browser audio reset delay
+      setTimeout(() => {
+        if (isRecording && recognitionRef.current) {
+          try {
+            sttStartTimeRef.current = performance.now();
+            recognitionRef.current.start();
+            onAgentStateChange('listening');
+          } catch (e) {
+            console.log("Speech recognition restart ignored:", e);
+          }
+        }
+      }, 200);
     };
 
     utterance.onerror = (e) => {
@@ -265,8 +269,8 @@ export const useWebSpeech = ({
 
     rec.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.warn('SpeechRecognition error:', event.error);
-      if (event.error === 'no-speech') {
-        // Safe to continue listening
+      if (event.error === 'no-speech' || event.error === 'aborted') {
+        // Safe to ignore aborted and no-speech events during voice turn changes
         return;
       }
       setIsRecording(false);
