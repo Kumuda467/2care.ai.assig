@@ -4,6 +4,7 @@ import json
 import uuid
 import sqlite3
 from fastapi import FastAPI, Depends, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -50,6 +51,216 @@ manager = ConnectionManager()
 @app.on_event("startup")
 def startup_event():
     init_and_seed_db()
+
+@app.get("/", response_class=HTMLResponse)
+def read_root():
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>2Care.ai - Clinical Voice AI Engine</title>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --bg: #0b0f19;
+                --primary: #3b82f6;
+                --success: #10b981;
+                --card-bg: rgba(17, 24, 39, 0.7);
+                --border: rgba(255, 255, 255, 0.08);
+                --text: #f3f4f6;
+                --text-muted: #9ca3af;
+            }
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                font-family: 'Outfit', sans-serif;
+                background-color: var(--bg);
+                color: var(--text);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow-hidden: relative;
+                background-image: 
+                    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.12) 0%, transparent 40%);
+            }
+            .container {
+                max-width: 600px;
+                width: 90%;
+                background: var(--card-bg);
+                border: 1px solid var(--border);
+                border-radius: 24px;
+                padding: 40px;
+                text-align: center;
+                backdrop-filter: blur(16px);
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+                position: relative;
+                z-index: 1;
+            }
+            .pulse-container {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(16, 185, 129, 0.1);
+                border: 1px solid rgba(16, 185, 129, 0.2);
+                padding: 8px 16px;
+                border-radius: 30px;
+                margin-bottom: 24px;
+            }
+            .pulse-dot {
+                width: 10px;
+                height: 10px;
+                background: var(--success);
+                border-radius: 50%;
+                margin-right: 10px;
+                box-shadow: 0 0 12px var(--success);
+                animation: pulse 1.8s infinite;
+            }
+            @keyframes pulse {
+                0% { transform: scale(0.9); opacity: 0.6; }
+                50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 18px var(--success); }
+                100% { transform: scale(0.9); opacity: 0.6; }
+            }
+            .status-text {
+                font-family: 'Space Grotesk', sans-serif;
+                font-weight: 700;
+                color: var(--success);
+                font-size: 0.9rem;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            h1 {
+                font-size: 2.8rem;
+                font-weight: 800;
+                margin-bottom: 12px;
+                background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -1px;
+            }
+            p.subtitle {
+                color: var(--text-muted);
+                font-size: 1.1rem;
+                line-height: 1.6;
+                margin-bottom: 32px;
+                font-weight: 300;
+            }
+            .grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+                margin-bottom: 32px;
+            }
+            .card {
+                background: rgba(255, 255, 255, 0.02);
+                border: 1px solid var(--border);
+                border-radius: 16px;
+                padding: 16px;
+                text-align: left;
+                transition: all 0.2s ease;
+            }
+            .card:hover {
+                background: rgba(255, 255, 255, 0.04);
+                border-color: rgba(59, 130, 246, 0.3);
+            }
+            .card-title {
+                font-size: 0.85rem;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                margin-bottom: 6px;
+                letter-spacing: 0.5px;
+            }
+            .card-value {
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: var(--text);
+            }
+            .btn-container {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            .btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 14px;
+                border-radius: 14px;
+                font-weight: 600;
+                text-decoration: none;
+                transition: all 0.2s ease;
+            }
+            .btn-primary {
+                background: var(--primary);
+                color: white;
+                box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            }
+            .btn-primary:hover {
+                background: #2563eb;
+                transform: translateY(-2px);
+            }
+            .btn-secondary {
+                background: rgba(255, 255, 255, 0.05);
+                color: var(--text);
+                border: 1px solid var(--border);
+            }
+            .btn-secondary:hover {
+                background: rgba(255, 255, 255, 0.08);
+                transform: translateY(-2px);
+            }
+            .footer {
+                margin-top: 32px;
+                font-size: 0.8rem;
+                color: var(--text-muted);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="pulse-container">
+                <div class="pulse-dot"></div>
+                <div class="status-text">Voice Engine Active</div>
+            </div>
+            <h1>2Care.ai</h1>
+            <p class="subtitle">Real-time Multilingual Clinical Voice AI Platform</p>
+            
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">Database</div>
+                    <div class="card-value">SQLite3 Connected</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Protocol</div>
+                    <div class="card-value">WebSockets Duplex</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Language Hub</div>
+                    <div class="card-value">EN, HI, TA Active</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Latency target</div>
+                    <div class="card-value">&lt; 450 ms (Strict)</div>
+                </div>
+            </div>
+
+            <div class="btn-container">
+                <a href="/docs" class="btn btn-primary">📖 Open Interactive Swagger API Docs</a>
+                <a href="/api/doctors" target="_blank" class="btn btn-secondary">👨‍⚕️ View Seeded Doctors Feed (JSON)</a>
+            </div>
+
+            <div class="footer">
+                2Care.ai Clinical Platform • Windows/Cloud Fully Seeded Native Engine
+            </div>
+        </div>
+    </body>
+    </html>
+    """
 
 # --- REST ENDPOINTS ---
 
