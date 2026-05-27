@@ -49,6 +49,7 @@ export const useWebSpeech = ({
   const isSpeakingRef = useRef(false);
   const sttStartTimeRef = useRef<number>(0);
   const currentLanguageRef = useRef(language);
+  const isThinkingRef = useRef(false);
 
   // Synchronize language ref
   useEffect(() => {
@@ -72,6 +73,7 @@ export const useWebSpeech = ({
     };
 
     socket.onmessage = async (event) => {
+      isThinkingRef.current = false;
       const data = JSON.parse(event.data);
       
       // Check for incoming call broadcast events
@@ -209,7 +211,7 @@ export const useWebSpeech = ({
     }
 
     const rec: SpeechRecognition = new SpeechRecognitionClass();
-    rec.continuous = true;
+    rec.continuous = false;
     rec.interimResults = false;
 
     // Set correct language recognition dialect
@@ -247,6 +249,7 @@ export const useWebSpeech = ({
       
       onTranscriptUpdate('user', transcript);
       onAgentStateChange('thinking');
+      isThinkingRef.current = true;
 
       // Dispatch to FastAPI Backend over WebSocket
       if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
@@ -271,8 +274,8 @@ export const useWebSpeech = ({
     };
 
     rec.onend = () => {
-      if (isRecording && !isSpeakingRef.current) {
-        // Auto-restart if we didn't stop manually and agent is not speaking
+      if (isRecording && !isSpeakingRef.current && !isThinkingRef.current) {
+        // Auto-restart if we didn't stop manually and agent is not speaking/thinking
         try {
           sttStartTimeRef.current = performance.now();
           rec.start();
@@ -319,6 +322,7 @@ export const useWebSpeech = ({
     window.speechSynthesis.cancel();
     isSpeakingRef.current = false;
     onAgentStateChange('thinking');
+    isThinkingRef.current = true;
 
     // Send proactive call init payload
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
