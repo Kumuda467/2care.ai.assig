@@ -65,8 +65,11 @@ interface IncomingCallModal {
   doctorName: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
+const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const rawWsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
+
+const API_URL = rawApiUrl.replace(/\/$/, '');
+const WS_URL = rawWsUrl.replace(/\/$/, '');
 
 export default function App() {
   // App State

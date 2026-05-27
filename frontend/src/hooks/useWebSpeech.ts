@@ -61,7 +61,8 @@ export const useWebSpeech = ({
       socketRef.current.close();
     }
 
-    const baseWsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
+    const rawWsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
+    const baseWsUrl = rawWsUrl.replace(/\/$/, '');
     const wsUrl = `${baseWsUrl}/ws/chat`;
     const socket = new WebSocket(wsUrl);
 
